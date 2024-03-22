@@ -5,8 +5,7 @@ if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdent
     exit
 }
 
-
-function InstallUpdateUtility {
+function InstalaCentroUpdate {
     param (
         [string]$brand
     )
@@ -23,22 +22,33 @@ function InstallUpdateUtility {
             
         }
         default {
-            Write-Output "Marca não listada. Pulando..."
+            Write-Output "Marca nao listada. Pulando..."
         }
     }
 }
 
 function InstalaSoftwarePadrao{
-
+  Write-Host "Instalando 7zip..."
+  winget install -e --id 7zip.7zip
+  Write-Host "Instalando Adobe Acrobat..."
+  winget install -e --id Adobe.Acrobat.Reader.64-bit
+  Write-Host "Instalando Mozilla Firefox ESR..."
+  winget install -e --id Mozilla.Firefox.ESR
+  Write-Host "Instalando Teams.."
+  winget install -e --id Microsoft.Teams
+  Write-Host "Instalando Java.."
+  winget install -e --id Oracle.JavaRuntimeEnvironment
+  Write-Host "Instalando Notepad++.."
+  winget install -e --id Notepad++.Notepad++
 }
 
 # Instala o winget 
-function Install-WingetIfMissing {
+function InstalaWinget {
     # Verifica se o winget já está instalado na maquina
     if (Test-Path ~\AppData\Local\Microsoft\WindowsApps\winget.exe) {
-      Write-Host "Winget já instalado, pulando instalação."
+      Write-Host "Winget ja instalado, pulando instalacao."
     } else {
-      Write-Host "Winget não encontrado, instalando..."
+      Write-Host "Winget nao encontrado, instalando..."
       $progressPreference = 'silentlyContinue'
       Write-Information "Baixando winget e suas dependecias..."
   
@@ -62,7 +72,7 @@ function Install-WingetIfMissing {
   }
   
   #Chama a função de instalação do winget
-  Install-WingetIfMissing
+  InstalaWinget
 
 #Decide a marca da maquina
 do{
@@ -70,13 +80,13 @@ do{
     Write-Host "1. Lenovo"
     Write-Host "2. Dell"
     Write-Host "3. Outros"
-    $brandNumber = Read-Host "Entre com algum dos números (1, 2, 3):"
+    $brandNumber = Read-Host "Entre com algum dos numeros (1, 2, 3):"
 } until ($brandNumber -eq "1" -or $brandNumber -eq "2" -or $brandNumber -eq "3")
 
 # Instala o app de update com base na marca selecionada
-InstallUpdateUtility -brand $brandNumber
+InstalaCentroUpdate -brand $brandNumber
 
-
+InstalaSoftwarePadrao
 
 
 Write-Host("Atualizando os softwares do sistema")
