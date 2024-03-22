@@ -1,6 +1,6 @@
 # Checa se o powershell foi inicializado como admin
 if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
-    # Se não, checa 
+    # Se não, fecha a instancia e executa uma nova
     Start-Process powershell -Verb RunAs -ArgumentList ('-noprofile -noexit -file "{0}" -admin' -f ($myinvocation.MyCommand.Definition))
     exit
 }
@@ -14,21 +14,27 @@ function InstallUpdateUtility {
     switch ($brand) {
         "1" {
             Write-Output "Installing Lenovo System Update..."
-            winget install -e --id Lenovo.SystemUpdate
+            winget install -e --id Lenovo.SystemUpdate --accept-source-agreements --accept-package-agreements
+            
         }
         "2" {
             Write-Output "Installing Dell Command Update..."
-            winget install -e --id Dell.CommandUpdate
+            winget install -e --id Dell.CommandUpdate --accept-source-agreements --accept-package-agreements
+            
         }
         default {
-            Write-Output "Unknown brand. Skipping..."
+            Write-Output "Marca não listada. Pulando..."
         }
     }
 }
 
+function InstalaSoftwarePadrao{
+
+}
+
 # Instala o winget 
 function Install-WingetIfMissing {
-    # Check if Winget is already installed
+    # Verifica se o winget já está instalado na maquina
     if (Test-Path ~\AppData\Local\Microsoft\WindowsApps\winget.exe) {
       Write-Host "Winget já instalado, pulando instalação."
     } else {
@@ -36,40 +42,27 @@ function Install-WingetIfMissing {
       $progressPreference = 'silentlyContinue'
       Write-Information "Baixando winget e suas dependecias..."
   
-      # Download and install dependencies silently
+      # Baixa as dependencias e pacotes de maneira silenciosa
       Invoke-WebRequest -Uri https://aka.ms/getwinget -OutFile Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle -UseBasicParsing
       Invoke-WebRequest -Uri https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx -OutFile Microsoft.VCLibs.x64.14.00.Desktop.appx -UseBasicParsing
       Invoke-WebRequest -Uri https://github.com/microsoft/microsoft-ui-xaml/releases/download/v2.8.6/Microsoft.UI.Xaml.2.8.x64.appx -OutFile Microsoft.UI.Xaml.2.8.x64.appx -UseBasicParsing
   
-      # Install the downloaded packages
+      # Instala os pacotes
       Add-AppxPackage Microsoft.VCLibs.x64.14.00.Desktop.appx -ErrorAction SilentlyContinue
       Add-AppxPackage Microsoft.UI.Xaml.2.8.x64.appx -ErrorAction SilentlyContinue
       Add-AppxPackage Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle -ErrorAction SilentlyContinue
   
-      # Check if Winget installation was successful
+      # Verifica se a instalação funcionou corretamente
       if (Test-Path ~\AppData\Local\Microsoft\WindowsApps\winget.exe) {
         Write-Host "Winget installation successful!"
-  
-        # Configure Winget to automatically accept source agreements
-        $configPath = [Environment]::GetFolderPath("LocalApplicationData") + "\Microsoft\Winget\winget.config"
-        if (!(Test-Path $configPath)) {
-          New-Item $configPath -ItemType File
-        }
-        $configContent = Get-Content $configPath -Raw
-        if ($configContent -notmatch '"autoAcceptAgreements": true') {
-          Add-Content $configPath '"experimental": { "msstore": { "autoAcceptAgreements": true } }'
-        }
-        Write-Host "Winget configured for automatic agreement acceptance."
       } else {
         Write-Error "Winget installation failed!"
       }
     }
   }
   
-  # Call the function to check and install Winget
+  #Chama a função de instalação do winget
   Install-WingetIfMissing
-  
-  
 
 #Decide a marca da maquina
 do{
@@ -85,10 +78,6 @@ InstallUpdateUtility -brand $brandNumber
 
 
 
-winget install 7-zip -q
-winget install Adobe.Acrobat.Reader.64-bit -q
-winget install Mozilla.Firefox.ESR -q
-winget install Microsoft.Teams -q
-winget install Oracle.JavaRuntimeEnvironment -q
-winget install Notepad++.Notepad++ -q
 
+Write-Host("Atualizando os softwares do sistema")
+winget upgrade --all --accept-source-agreements --accept-package-agreements
