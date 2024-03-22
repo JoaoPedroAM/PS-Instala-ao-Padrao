@@ -1,33 +1,55 @@
-# Checa se o powershell foi inicializado como admin
+# Checa se o powershell foi inicializado como administrador
 if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
-    # Se não, fecha a instancia e executa uma nova
-    Start-Process powershell -Verb RunAs -ArgumentList ('-noprofile -noexit -file "{0}" -admin' -f ($myinvocation.MyCommand.Definition))
-    exit
+  # Se não, fecha a instância e executa uma nova como administrador
+  Start-Process powershell -Verb RunAs -ArgumentList ('-noprofile -noexit -file "{0}" -admin' -f ($myinvocation.MyCommand.Definition))
+  exit
 }
 
+# Função principal
+function Main {
+  InstalaWinget           # Instala o Winget, um gerenciador de pacotes
+  EscolheMarca            # Permite ao usuário escolher a marca da máquina
+  InstalaCentroUpdate -brand $brandNumber   # Instala o software de atualização com base na marca selecionada
+  InstalaSoftwarePadrao   # Instala uma lista de softwares padrão
+  AtualizaSoftwares       # Atualiza todos os softwares do sistema
+}
+
+# Função para permitir ao usuário escolher a marca da máquina
+function EscolheMarca {
+  do {
+      Write-Host "Escolha a marca da sua maquina:"
+      Write-Host "1. Lenovo"
+      Write-Host "2. Dell"
+      Write-Host "3. Outros"
+      $global:brandNumber = Read-Host "Entre com algum dos numeros (1, 2, 3):"
+  } until ($global:brandNumber -eq "1" -or $global:brandNumber -eq "2" -or $global:brandNumber -eq "3")
+}
+
+# Função para instalar o software de atualização com base na marca selecionada
 function InstalaCentroUpdate {
-    param (
-        [string]$brand
-    )
+  param (
+      [string]$brand
+  )
 
-    switch ($brand) {
-        "1" {
-            Write-Output "Installing Lenovo System Update..."
-            winget install -e --id Lenovo.SystemUpdate --accept-source-agreements --accept-package-agreements
-            
-        }
-        "2" {
-            Write-Output "Installing Dell Command Update..."
-            winget install -e --id Dell.CommandUpdate --accept-source-agreements --accept-package-agreements
-            
-        }
-        default {
-            Write-Output "Marca nao listada. Pulando..."
-        }
-    }
+  switch ($brand) {
+      "1" {
+          Write-Output "Installing Lenovo System Update..."
+          winget install -e --id Lenovo.SystemUpdate --accept-source-agreements --accept-package-agreements
+          
+      }
+      "2" {
+          Write-Output "Installing Dell Command Update..."
+          winget install -e --id Dell.CommandUpdate --accept-source-agreements --accept-package-agreements
+          
+      }
+      default {
+          Write-Output "Marca nao listada. Pulando..."
+      }
+  }
 }
 
-function InstalaSoftwarePadrao{
+# Função para instalar softwares padrão
+function InstalaSoftwarePadrao {
   Write-Host "Instalando 7zip..."
   winget install -e --id 7zip.7zip
   Write-Host "Instalando Adobe Acrobat..."
@@ -42,52 +64,40 @@ function InstalaSoftwarePadrao{
   winget install -e --id Notepad++.Notepad++
 }
 
-# Instala o winget 
+# Função para instalar o Winget
 function InstalaWinget {
-    # Verifica se o winget já está instalado na maquina
-    if (Test-Path ~\AppData\Local\Microsoft\WindowsApps\winget.exe) {
-      Write-Host "Winget ja instalado, pulando instalacao."
-    } else {
-      Write-Host "Winget nao encontrado, instalando..."
+  # Verifica se o Winget já está instalado na máquina
+  if (Test-Path ~\AppData\Local\Microsoft\WindowsApps\winget.exe) {
+      Write-Host "Winget já instalado, pulando instalação."
+  } else {
+      Write-Host "Winget não encontrado, instalando..."
       $progressPreference = 'silentlyContinue'
-      Write-Information "Baixando winget e suas dependecias..."
-  
-      # Baixa as dependencias e pacotes de maneira silenciosa
+      Write-Information "Baixando Winget e suas dependências..."
+
+      # Baixa as dependências e pacotes de maneira silenciosa
       Invoke-WebRequest -Uri https://aka.ms/getwinget -OutFile Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle -UseBasicParsing
       Invoke-WebRequest -Uri https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx -OutFile Microsoft.VCLibs.x64.14.00.Desktop.appx -UseBasicParsing
       Invoke-WebRequest -Uri https://github.com/microsoft/microsoft-ui-xaml/releases/download/v2.8.6/Microsoft.UI.Xaml.2.8.x64.appx -OutFile Microsoft.UI.Xaml.2.8.x64.appx -UseBasicParsing
-  
+
       # Instala os pacotes
       Add-AppxPackage Microsoft.VCLibs.x64.14.00.Desktop.appx -ErrorAction SilentlyContinue
       Add-AppxPackage Microsoft.UI.Xaml.2.8.x64.appx -ErrorAction SilentlyContinue
       Add-AppxPackage Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle -ErrorAction SilentlyContinue
-  
+
       # Verifica se a instalação funcionou corretamente
       if (Test-Path ~\AppData\Local\Microsoft\WindowsApps\winget.exe) {
-        Write-Host "Winget installation successful!"
+          Write-Host "Winget installation successful!"
       } else {
-        Write-Error "Winget installation failed!"
+          Write-Error "Winget installation failed!"
       }
-    }
   }
-  
-  #Chama a função de instalação do winget
-  InstalaWinget
+}
 
-#Decide a marca da maquina
-do{
-    Write-Host "Escolha a marca da sua maquina:"
-    Write-Host "1. Lenovo"
-    Write-Host "2. Dell"
-    Write-Host "3. Outros"
-    $brandNumber = Read-Host "Entre com algum dos numeros (1, 2, 3):"
-} until ($brandNumber -eq "1" -or $brandNumber -eq "2" -or $brandNumber -eq "3")
+# Função para atualizar os softwares do sistema
+function AtualizaSoftwares {
+  Write-Host("Atualizando os softwares do sistema")
+  winget upgrade --all --accept-source-agreements --accept-package-agreements
+}
 
-# Instala o app de update com base na marca selecionada
-InstalaCentroUpdate -brand $brandNumber
-
-InstalaSoftwarePadrao
-
-
-Write-Host("Atualizando os softwares do sistema")
-winget upgrade --all --accept-source-agreements --accept-package-agreements
+# Chama a função principal
+Main
