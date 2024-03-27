@@ -44,12 +44,12 @@ function InstalaCentroUpdate {
 
   switch ($brand) {
       "1" {
-          Write-Output "Installing Lenovo System Update..."
+          Write-Output "Instalando Lenovo System Update..."
           winget install -e --id Lenovo.SystemUpdate --accept-source-agreements --accept-package-agreements
           
       }
       "2" {
-          Write-Output "Installing Dell Command Update..."
+          Write-Output "Instalando Dell Command Update..."
           winget install -e --id Dell.CommandUpdate --accept-source-agreements --accept-package-agreements
           
       }
@@ -97,9 +97,9 @@ function InstalaWinget {
 
       # Verifica se a instalação funcionou corretamente
       if (Test-Path ~\AppData\Local\Microsoft\WindowsApps\winget.exe) {
-          Write-Host "Winget installation successful!"
+          Write-Host "Instalação do winget concluida!"
       } else {
-          Write-Error "Winget installation failed!"
+          Write-Error "Falha na instalação do winget!"
       }
   }
 }
