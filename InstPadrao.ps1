@@ -21,8 +21,8 @@ function ConsertaWingetWin11 {
 
 Invoke-WebRequest -Uri https://aka.ms/getwinget -OutFile winget.msixbundle
 Add-AppxPackage winget.msixbundle -ForceApplicationShutdown
-del winget.msixbundle
-cls
+Remove-Item winget.msixbundle
+Clear-Host 
   
 }
 # Função para permitir ao usuário escolher a marca da máquina
