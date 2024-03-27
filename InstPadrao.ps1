@@ -7,6 +7,8 @@ if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdent
 
 # Função principal
 function Main {
+
+  ConsertaWingetWin11     # Devido a problemas no win11 é nescessario realizar essa etapa
   InstalaWinget           # Instala o Winget, um gerenciador de pacotes
   EscolheMarca            # Permite ao usuário escolher a marca da máquina
   InstalaCentroUpdate -brand $brandNumber   # Instala o software de atualização com base na marca selecionada
@@ -14,6 +16,15 @@ function Main {
   AtualizaSoftwares       # Atualiza todos os softwares do sistema
 }
 
+
+function ConsertaWingetWin11 {
+
+Invoke-WebRequest -Uri https://aka.ms/getwinget -OutFile winget.msixbundle
+Add-AppxPackage winget.msixbundle -ForceApplicationShutdown
+del winget.msixbundle
+cls
+  
+}
 # Função para permitir ao usuário escolher a marca da máquina
 function EscolheMarca {
   do {
@@ -68,9 +79,9 @@ function InstalaSoftwarePadrao {
 function InstalaWinget {
   # Verifica se o Winget já está instalado na máquina
   if (Test-Path ~\AppData\Local\Microsoft\WindowsApps\winget.exe) {
-      Write-Host "Winget já instalado, pulando instalação."
+      Write-Host "Winget ja instalado, pulando instalacao."
   } else {
-      Write-Host "Winget não encontrado, instalando..."
+      Write-Host "Winget nao encontrado, instalando..."
       $progressPreference = 'silentlyContinue'
       Write-Information "Baixando Winget e suas dependências..."
 
@@ -101,3 +112,6 @@ function AtualizaSoftwares {
 
 # Chama a função principal
 Main
+
+
+
