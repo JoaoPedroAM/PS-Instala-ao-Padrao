@@ -8,7 +8,7 @@ if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdent
 # Função principal
 function Main {
 
-  ConsertaWingetWin11     # Devido a problemas no win11 é nescessario realizar essa etapa
+  perguntaWinget  # Adiciona a pergunta sobre o Winget
   InstalaWinget           # Instala o Winget, um gerenciador de pacotes
   EscolheMarca            # Permite ao usuário escolher a marca da máquina
   InstalaCentroUpdate -brand $brandNumber   # Instala o software de atualização com base na marca selecionada
@@ -16,6 +16,19 @@ function Main {
   AtualizaSoftwares       # Atualiza todos os softwares do sistema
 }
 
+# Função para perguntar sobre o Winget
+function perguntaWinget {
+  $resposta = Read-Host "Você está enfrentando problemas com o Winget? Responda com '1' para Sim ou '2' para Não"
+
+  if ($resposta -eq "1") {
+      Write-Host "Consertando Winget..."
+      ConsertaWingetWin11
+  } elseif ($resposta -eq "2") {
+      Write-Host "Prosseguindo sem corrigir o Winget..."
+  } else {
+      Write-Host "Resposta inválida. Prosseguindo sem corrigir o Winget..."
+  }
+}
 
 function ConsertaWingetWin11 {
 
